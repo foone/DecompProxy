@@ -3,8 +3,13 @@
 
 #include <string>
 
-typedef  int  (__stdcall *decompfunk)  (unsigned char* compressed_data,int compressed_size,
-													unsigned char* outputbuffer,int uncompressed_size,int* output_size);
+typedef  int  (__stdcall *decompfunk)  (
+		unsigned char*	compressed_data,
+		int		compressed_size, 
+		unsigned char*	outputbuffer,
+		int		uncompressed_size,
+		int*		output_size
+	);
 
 struct ExtractContext{
 	decompfunk DecompressFunction[2];
