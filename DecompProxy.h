@@ -3,6 +3,9 @@
 
 #include <string>
 
+#define EXPORTED extern "C" __declspec(dllexport)
+
+
 typedef  int  (__stdcall *decompfunk)  (
 		unsigned char*	compressed_data,
 		int		compressed_size, 
@@ -16,10 +19,10 @@ struct ExtractContext{
 	unsigned char *extracted_code[2];
 };
 
-ExtractContext* DP_Init(const char *filename);
-int DP_Shutdown(ExtractContext*);
-int DP_GetSize(unsigned char* section, int sectionsize);
-int DP_DecompressSmart(ExtractContext*,unsigned char* section, int sectionsize,
+EXPORTED ExtractContext* DP_Init(const char *filename);
+EXPORTED int DP_Shutdown(ExtractContext*);
+EXPORTED int DP_GetSize(unsigned char* section, int sectionsize);
+EXPORTED int DP_DecompressSmart(ExtractContext*,unsigned char* section, int sectionsize,
 																		unsigned char* output);
 
 

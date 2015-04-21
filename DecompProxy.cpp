@@ -1,5 +1,5 @@
 // DecompProxy.cpp : Defines the entry point for the DLL application.
-//
+
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
@@ -16,7 +16,7 @@ unsigned char func2sig[16]={0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x55,
 
 void SetupOffsets(){
 	offsets.clear();
-	OffsetType US={"3dmm US","Travis Wells",
+	OffsetType US={"3dmm US","Foone Turing",
 	{212992,228624},
 	{212992-6,228624-6},
 	{{0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x55, 0x8B, 0x54, 0x24, 0x0C, 0x8B, 0xEC, 0x83},
@@ -58,18 +58,17 @@ ExtractContext*  LoadFunctions(FILE *fp,const OffsetType& offset){
 	//Shutdown();
 	ExtractContext* ctx=new ExtractContext();
 	for(int i=0;i<2;i++){
-		ctx->extracted_code[i]=new unsigned char[offset.length[i]];
+		ctx->extracted_code[i]=(unsigned char*)VirtualAlloc(NULL,offset.length[i],MEM_COMMIT | MEM_RESERVE,PAGE_EXECUTE_READWRITE);
 		fseek(fp,offset.offset[i],SEEK_SET);
 		if(fread(ctx->extracted_code[i],offset.length[i],1,fp)!=1){
 			DP_Shutdown(ctx);
-			//delete [] ctx->extracted_code[i];
 			return NULL;
 		}
 		ctx->DecompressFunction[i]=(decompfunk)ctx->extracted_code[i];
 	}
 	return ctx;
 }
-ExtractContext* DP_Init(const char *filename){
+EXPORTED ExtractContext* DP_Init(const char *filename){
 	SetupOffsets();
 	FILE *fp=fopen(filename,"rb");
 	if(!fp)return 0;
@@ -89,24 +88,24 @@ ExtractContext* DP_Init(const char *filename){
 		return NULL;
 	}
 }
-int DP_Shutdown(ExtractContext *ctx){
-	//printf("DEBUG: Deleting context\n");
+EXPORTED int DP_Shutdown(ExtractContext *ctx){
 	for(int i=0;i<2;i++){
 		if (ctx->extracted_code[i]){
-			delete [] ctx->extracted_code[i];
+			VirtualFree(ctx->extracted_code[i],0,MEM_RELEASE);
+
 			ctx->extracted_code[i]=NULL;
 		}
 		ctx->DecompressFunction[i]=NULL;
 	}
 	return 1;
 }
-// This is an example of an exported function.
-int DP_GetSize(unsigned char* section, int sectionsize){
+
+EXPORTED int DP_GetSize(unsigned char* section, int sectionsize){
 	if (sectionsize<8)return -1; // Too short!
 	int size=section[7]|(((int)section[6])<<8)|(((int)section[5])<<16)|(((int)section[4])<<24);
 	return size;
 }
-int DP_DecompressSmart(ExtractContext *ctx,unsigned char* section, int sectionsize,unsigned char* output){
+EXPORTED int DP_DecompressSmart(ExtractContext *ctx,unsigned char* section, int sectionsize,unsigned char* output){
 	if(ctx->DecompressFunction[0]==NULL && ctx->DecompressFunction[1]==NULL){
 		return -1;
 	}
